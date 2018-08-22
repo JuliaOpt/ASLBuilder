@@ -17,28 +17,34 @@ sources = [
 
 # Bash recipe for building across all platforms
 script = raw"""
-cd $WORKSPACE/srcdir
-# Use staticfloat's cross-compile trick https://github.com/ampl/mp/issues/115
- set -e
- cd $WORKSPACE/srcdir/mp-3.1.0
- rm -rf thirdparty/benchmark
- patch -p1 < $WORKSPACE/srcdir/mp-extra-3.1.0-2/no_benchmark.patch
- # Build ASL
- mkdir build
- cd build
- cmake -DCMAKE_INSTALL_PREFIX=$prefix       -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
-      
- # Copy over pregenerated files after building arithchk, so as to fake out cmake,
- # because cmake will delete our arith.h
- more src/asl/arith.h
- make arith-h VERBOSE=1
- more src/asl/arith.h
- mkdir -p src/asl
- cp -v $WORKSPACE/srcdir/mp-extra-3.1.0-2/expr-info.cc ../src/expr-info.cc
- cp -v $WORKSPACE/srcdir/mp-extra-3.1.0-2/arith.h.${target} src/asl/arith.h
- # Build and install ASL
- make -j${nproc} VERBOSE=1
- make install VERBOSE=1
+# Use staticfloat's cross-compile trick for ASL https://github.com/ampl/mp/issues/115
+
+cd $WORKSPACE/srcdir/mp-3.1.0
+rm -rf thirdparty/benchmark
+patch -p1 < $WORKSPACE/srcdir/mp-extra-3.1.0-2/no_benchmark.patch
+
+# Build ASL
+
+mkdir build
+cd build
+cmake -DCMAKE_INSTALL_PREFIX=$prefix  -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
+
+# Copy over pregenerated files after building arithchk, so as to fake out cmake,
+# because cmake will delete our arith.h
+
+## If this fails it is ok, we just want to prevend cmake deleting arith.h
+set +e
+make arith-h VERBOSE=1
+set -e
+
+mkdir -p src/asl
+cp -v $WORKSPACE/srcdir/mp-extra-3.1.0-2/expr-info.cc ../src/expr-info.cc
+cp -v $WORKSPACE/srcdir/mp-extra-3.1.0-2/arith.h.${target} src/asl/arith.h
+
+# Build and install ASL
+
+make -j${nproc} VERBOSE=1
+make install VERBOSE=1
 
 """
 
@@ -49,13 +55,7 @@ platforms = [
     Linux(:x86_64, :glibc),
     Linux(:aarch64, :glibc),
     Linux(:armv7l, :glibc, :eabihf),
-    Linux(:powerpc64le, :glibc),
-    Linux(:i686, :musl),
-    Linux(:x86_64, :musl),
-    Linux(:aarch64, :musl),
-    Linux(:armv7l, :musl, :eabihf),
     MacOS(:x86_64),
-    FreeBSD(:x86_64),
     Windows(:i686),
     Windows(:x86_64)
 ]
