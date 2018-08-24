@@ -61,7 +61,9 @@ platforms = [
 ]
 
 # The products that we will ensure are always built
-products(prefix) = Array{BinaryProvider.LibraryProduct,1}()
+products(prefix) = [
+    LibraryProduct(prefix, "libasl", :libasl)
+]
 
 # Dependencies that must be installed before this package can be built
 dependencies = [
