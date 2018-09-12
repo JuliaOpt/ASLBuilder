@@ -17,6 +17,10 @@ sources = [
 
 # Bash recipe for building across all platforms
 script = raw"""
+# temporary tool compatibility fix
+export LD_LIBRARY_PATH="/usr/local/lib64:/usr/local/lib:/lib:/usr/local/lib:/usr/lib:/opt/$target/lib64:/opt/$target/lib"
+export PATH="/opt/${target}/bin:/opt/${host_target}/bin:$PATH"
+
 # Use staticfloat's cross-compile trick for ASL https://github.com/ampl/mp/issues/115
 
 cd $WORKSPACE/srcdir/mp-3.1.0
