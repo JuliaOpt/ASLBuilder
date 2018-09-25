@@ -9,29 +9,26 @@ version = v"3.1.0"
 sources = [
     "https://github.com/ampl/mp/archive/3.1.0.tar.gz" =>
     "587c1a88f4c8f57bef95b58a8586956145417c8039f59b1758365ccc5a309ae9",
-
-    "https://github.com/staticfloat/mp-extra/archive/v3.1.0-2.tar.gz" =>
-    "2f227175437f73d9237d3502aea2b4355b136e29054267ec0678a19b91e9236e",
-
+    "./mp-extra" 
 ]
 
 # Bash recipe for building across all platforms
 script = raw"""
-# temporary tool compatibility fix
-export LD_LIBRARY_PATH="/usr/local/lib64:/usr/local/lib:/lib:/usr/local/lib:/usr/lib:/opt/$target/lib64:/opt/$target/lib"
-export PATH="/opt/${target}/bin:/opt/${host_target}/bin:$PATH"
-
 # Use staticfloat's cross-compile trick for ASL https://github.com/ampl/mp/issues/115
-
 cd $WORKSPACE/srcdir/mp-3.1.0
 rm -rf thirdparty/benchmark
-patch -p1 < $WORKSPACE/srcdir/mp-extra-3.1.0-2/no_benchmark.patch
+patch -p1 < $WORKSPACE/srcdir/mp-extra/no_benchmark.patch
 
 # Build ASL
 
 mkdir build
 cd build
-cmake -DCMAKE_INSTALL_PREFIX=$prefix  -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
+
+if [ $target = "x86_64-w64-mingw32" ] || [ $target = "i686-w64-mingw32" ]; then
+   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain -DRUN_HAVE_STD_REGEX=0 -DRUN_HAVE_STEADY_CLOCK=0 -DHAVE_ACCESS_DRIVER_EXITCODE=0 -DHAVE_EXCEL_DRIVER_EXITCODE=0 -DHAVE_ODBC_TEXT_DRIVER_EXITCODE=0    ../
+else
+   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$prefix  -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
+fi
 
 # Copy over pregenerated files after building arithchk, so as to fake out cmake,
 # because cmake will delete our arith.h
@@ -42,14 +39,13 @@ make arith-h VERBOSE=1
 set -e
 
 mkdir -p src/asl
-cp -v $WORKSPACE/srcdir/mp-extra-3.1.0-2/expr-info.cc ../src/expr-info.cc
-cp -v $WORKSPACE/srcdir/mp-extra-3.1.0-2/arith.h.${target} src/asl/arith.h
+cp -v $WORKSPACE/srcdir/mp-extra/expr-info.cc ../src/expr-info.cc
+cp -v $WORKSPACE/srcdir/mp-extra/arith.h.${target} src/asl/arith.h
 
 # Build and install ASL
 
 make -j${nproc} VERBOSE=1
 make install VERBOSE=1
-
 """
 
 # These are the platforms we will build for by default, unless further
