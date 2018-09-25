@@ -9,7 +9,7 @@ version = v"3.1.0"
 sources = [
     "https://github.com/ampl/mp/archive/3.1.0.tar.gz" =>
     "587c1a88f4c8f57bef95b58a8586956145417c8039f59b1758365ccc5a309ae9",
-    "./mp-extra" 
+    "./bundled" 
 ]
 
 # Bash recipe for building across all platforms
