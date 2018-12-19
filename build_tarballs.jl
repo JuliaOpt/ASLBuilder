@@ -24,11 +24,25 @@ patch -p1 < $WORKSPACE/srcdir/mp-extra/no_benchmark.patch
 mkdir build
 cd build
 
-if [ $target = "x86_64-w64-mingw32" ] || [ $target = "i686-w64-mingw32" ]; then
-   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain -DRUN_HAVE_STD_REGEX=0 -DRUN_HAVE_STEADY_CLOCK=0 -DHAVE_ACCESS_DRIVER_EXITCODE=0 -DHAVE_EXCEL_DRIVER_EXITCODE=0 -DHAVE_ODBC_TEXT_DRIVER_EXITCODE=0    ../
-else
-   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$prefix  -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
+## STATIC BUILD START
+if [ $target = "x86_64-apple-darwin14" ]; then
+  export AR=/opt/x86_64-apple-darwin14/bin/llvm-ar
 fi
+
+if [ $target = "x86_64-w64-mingw32" ] || [ $target = "i686-w64-mingw32" ]; then
+   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain -DRUN_HAVE_STD_REGEX=0 -DRUN_HAVE_STEADY_CLOCK=0 -DHAVE_ACCESS_DRIVER_EXITCODE=0 -DHAVE_EXCEL_DRIVER_EXITCODE=0 -DHAVE_ODBC_TEXT_DRIVER_EXITCODE=0    ../
+else
+   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=OFF -DCMAKE_INSTALL_PREFIX=$prefix  -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
+fi
+## STATIC BUILD END
+
+## DYNAMIC BUILD START
+#if [ $target = "x86_64-w64-mingw32" ] || [ $target = "i686-w64-mingw32" ]; then
+#   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$prefix -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain -DRUN_HAVE_STD_REGEX=0 -DRUN_HAVE_STEADY_CLOCK=0 -DHAVE_ACCESS_DRIVER_EXITCODE=0 -DHAVE_EXCEL_DRIVER_EXITCODE=0 -DHAVE_ODBC_TEXT_DRIVER_EXITCODE=0    ../
+#else
+#   cmake -DCMAKE_C_FLAGS='-fPIC -DPIC' -DBUILD_SHARED_LIBS=ON -DCMAKE_INSTALL_PREFIX=$prefix  -DCMAKE_TOOLCHAIN_FILE=/opt/$target/$target.toolchain       -DRUN_HAVE_STD_REGEX=0       -DRUN_HAVE_STEADY_CLOCK=0       ../
+#fi
+## DYNAMIC BUILD END
 
 # Copy over pregenerated files after building arithchk, so as to fake out cmake,
 # because cmake will delete our arith.h
