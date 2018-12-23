@@ -26,7 +26,7 @@ cd build
 
 ## STATIC BUILD START
 if [ $target = "x86_64-apple-darwin14" ]; then
-  export AR=/opt/x86_64-apple-darwin14/bin/llvm-ar
+  export AR=/opt/x86_64-apple-darwin14/bin/x86_64-apple-darwin14-ar
 fi
 
 if [ $target = "x86_64-w64-mingw32" ] || [ $target = "i686-w64-mingw32" ]; then
